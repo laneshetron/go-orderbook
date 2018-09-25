@@ -19,53 +19,39 @@ type TradeEvent struct {
     quantity float64
 }
 
-type AskOrders []*Order
-type BidOrders []*Order
+type BaseHeap []*Order
+type AskOrders struct {
+    BaseHeap
+}
+type BidOrders struct {
+    BaseHeap
+}
 type OrdersMap map[string]*Order
 
-func (ob AskOrders) Len() int { return len(ob) }
-
-func (ob BidOrders) Len() int { return len(ob) }
-
 func (ob AskOrders) Less(i, j int) bool {
-    return ob[i].price < ob[j].price
+    return ob.BaseHeap[i].price < ob.BaseHeap[j].price
 }
 
 func (ob BidOrders) Less(i, j int) bool {
-    return ob[i].price > ob[j].price
+    return ob.BaseHeap[i].price > ob.BaseHeap[j].price
 }
 
-func (ob AskOrders) Swap(i, j int) {
-    ob[i], ob[j] = ob[j], ob[i]
-    ob[i].index = i
-    ob[j].index = j
+func (h BaseHeap) Len() int { return len(h) }
+
+func (h BaseHeap) Swap(i, j int) {
+    h[i], h[j] = h[j], h[i]
+    h[i].index = i
+    h[j].index = j
 }
 
-func (ob BidOrders) Swap(i, j int) {
-    ob[i], ob[j] = ob[j], ob[i]
-    ob[i].index = i
-    ob[j].index = j
+func (h *BaseHeap) Push(x interface{}) {
+    *h = append(*h, x.(*Order))
+    (*h)[len(*h)-1].index = len(*h) - 1
 }
 
-func (ob *AskOrders) Push(x interface{}) {
-    *ob = append(*ob, x.(*Order))
-    (*ob)[len(*ob)-1].index = len(*ob) - 1
-}
-
-func (ob *BidOrders) Push(x interface{}) {
-    *ob = append(*ob, x.(*Order))
-    (*ob)[len(*ob)-1].index = len(*ob) - 1
-}
-
-func (ob *AskOrders) Pop() interface{} {
-    x := (*ob)[len(*ob)-1]
-    *ob = (*ob)[:len(*ob)-1]
-    return x
-}
-
-func (ob *BidOrders) Pop() interface{} {
-    x := (*ob)[len(*ob)-1]
-    *ob = (*ob)[:len(*ob)-1]
+func (h *BaseHeap) Pop() interface{} {
+    x := (*h)[len(*h)-1]
+    *h = (*h)[:len(*h)-1]
     return x
 }
 
@@ -96,7 +82,7 @@ func (bb *BidBook) remove(orderId string) {
 
 func (bb *BidBook) volume() float64 {
     var total float64 = 0
-    for _, order := range bb.BidOrders {
+    for _, order := range bb.BidOrders.BaseHeap {
         total += order.quantity
     }
     return total
@@ -129,7 +115,7 @@ func (ab *AskBook) remove(orderId string) {
 
 func (ab *AskBook) volume() float64 {
     var total float64 = 0
-    for _, order := range ab.AskOrders {
+    for _, order := range ab.AskOrders.BaseHeap {
         total += order.quantity
     }
     return total
@@ -154,16 +140,16 @@ func (ob OrderBook) midpoint() float64 {
     if !ob.hasBoth() {
         return 0
     }
-    return (float64(ob.AskOrders[0].price) +
-            float64(ob.BidOrders[0].price)) / 2
+    return (float64(ob.AskOrders.BaseHeap[0].price) +
+            float64(ob.BidOrders.BaseHeap[0].price)) / 2
 }
 
 func (ob OrderBook) spread() float64 {
     if !ob.hasBoth() {
         return 0
     }
-    return (float64(ob.AskOrders[0].price) -
-            float64(ob.BidOrders[0].price))
+    return (float64(ob.AskOrders.BaseHeap[0].price) -
+            float64(ob.BidOrders.BaseHeap[0].price))
 }
 
 func (ob OrderBook) hasBoth() bool {
