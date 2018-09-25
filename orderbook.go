@@ -81,6 +81,12 @@ func (bb *BidBook) push(orderId string, price float64, amount float64) {
     bb.OrdersMap[orderId] = &order
 }
 
+func (bb *BidBook) pop() *Order {
+    order := heap.Pop(&bb.BidOrders).(*Order)
+    delete(bb.OrdersMap, order.orderId)
+    return order
+}
+
 func (bb *BidBook) remove(orderId string) {
     if _, ok := bb.OrdersMap[orderId]; ok {
         heap.Remove(&bb.BidOrders, bb.OrdersMap[orderId].index)
@@ -108,6 +114,12 @@ func (ab *AskBook) push(orderId string, price float64, amount float64) {
     ab.OrdersMap[orderId] = &order
 }
 
+func (ab *AskBook) pop() *Order {
+    order := heap.Pop(&ab.AskOrders).(*Order)
+    delete(ab.OrdersMap, order.orderId)
+    return order
+}
+
 func (ab *AskBook) remove(orderId string) {
     if _, ok := ab.OrdersMap[orderId]; ok {
         heap.Remove(&ab.AskOrders, ab.OrdersMap[orderId].index)
@@ -129,6 +141,13 @@ type OrderBook struct {
     quotes chan *Quote
     buyEvents chan *TradeEvent
     sellEvents chan *TradeEvent
+}
+
+func (ob *OrderBook) Init() {
+    heap.Init(&ob.AskBook.AskOrders)
+    heap.Init(&ob.BidBook.BidOrders)
+    ob.AskBook.OrdersMap = make(OrdersMap)
+    ob.BidBook.OrdersMap = make(OrdersMap)
 }
 
 func (ob OrderBook) midpoint() float64 {
