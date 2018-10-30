@@ -60,14 +60,14 @@ type BidBook struct {
     OrdersMap
 }
 
-func (bb *BidBook) push(orderId string, price float64, amount float64) {
+func (bb *BidBook) Push(orderId string, price float64, amount float64) {
     bb.remove(orderId) // ensure orderId does not already exist
     order := Order{price: price, quantity: amount, orderId: orderId}
     heap.Push(&bb.BidOrders, &order)
     bb.OrdersMap[orderId] = &order
 }
 
-func (bb *BidBook) pop() *Order {
+func (bb *BidBook) Pop() *Order {
     order := heap.Pop(&bb.BidOrders).(*Order)
     delete(bb.OrdersMap, order.orderId)
     return order
@@ -93,14 +93,14 @@ type AskBook struct {
     OrdersMap
 }
 
-func (ab *AskBook) push(orderId string, price float64, amount float64) {
+func (ab *AskBook) Push(orderId string, price float64, amount float64) {
     ab.remove(orderId) // ensure orderId does not already exist
     order := Order{price: price, quantity: amount, orderId: orderId}
     heap.Push(&ab.AskOrders, &order)
     ab.OrdersMap[orderId] = &order
 }
 
-func (ab *AskBook) pop() *Order {
+func (ab *AskBook) Pop() *Order {
     order := heap.Pop(&ab.AskOrders).(*Order)
     delete(ab.OrdersMap, order.orderId)
     return order
@@ -134,28 +134,31 @@ func (ob *OrderBook) Init() {
     heap.Init(&ob.BidBook.BidOrders)
     ob.AskBook.OrdersMap = make(OrdersMap)
     ob.BidBook.OrdersMap = make(OrdersMap)
+    ob.quotes = make(chan *Quote)
+    ob.buyEvents = make(chan *TradeEvent)
+    ob.sellEvents = make(chan *TradeEvent)
 }
 
-func (ob OrderBook) midpoint() float64 {
-    if !ob.hasBoth() {
+func (ob OrderBook) Midpoint() float64 {
+    if !ob.HasBoth() {
         return 0
     }
     return (float64(ob.AskOrders.BaseHeap[0].price) +
             float64(ob.BidOrders.BaseHeap[0].price)) / 2
 }
 
-func (ob OrderBook) spread() float64 {
-    if !ob.hasBoth() {
+func (ob OrderBook) Spread() float64 {
+    if !ob.HasBoth() {
         return 0
     }
     return (float64(ob.AskOrders.BaseHeap[0].price) -
             float64(ob.BidOrders.BaseHeap[0].price))
 }
 
-func (ob OrderBook) hasBoth() bool {
+func (ob OrderBook) HasBoth() bool {
     return ob.AskOrders.Len() > 0 && ob.BidOrders.Len() > 0
 }
 
-func (ob OrderBook) volume() float64 {
+func (ob OrderBook) Volume() float64 {
     return ob.AskBook.volume() + ob.BidBook.volume()
 }
