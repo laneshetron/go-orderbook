@@ -3,20 +3,20 @@ package orderbook
 import "container/heap"
 
 type Order struct {
-    price float64
-    quantity float64
-    orderId string
+    Price float64
+    Quantity float64
+    OrderId string
     index int
 }
 
 type Quote struct {
-    ask *Order
-    bid *Order
+    Ask *Order
+    Bid *Order
 }
 
 type TradeEvent struct {
-    price float64
-    quantity float64
+    Price float64
+    Quantity float64
 }
 
 type BaseHeap []*Order
@@ -29,11 +29,11 @@ type BidOrders struct {
 type OrdersMap map[string]*Order
 
 func (ob AskOrders) Less(i, j int) bool {
-    return ob.BaseHeap[i].price < ob.BaseHeap[j].price
+    return ob.BaseHeap[i].Price < ob.BaseHeap[j].Price
 }
 
 func (ob BidOrders) Less(i, j int) bool {
-    return ob.BaseHeap[i].price > ob.BaseHeap[j].price
+    return ob.BaseHeap[i].Price > ob.BaseHeap[j].Price
 }
 
 func (h BaseHeap) Len() int { return len(h) }
@@ -62,14 +62,14 @@ type BidBook struct {
 
 func (bb *BidBook) Push(orderId string, price float64, amount float64) {
     bb.remove(orderId) // ensure orderId does not already exist
-    order := Order{price: price, quantity: amount, orderId: orderId}
+    order := Order{Price: price, Quantity: amount, OrderId: orderId}
     heap.Push(&bb.BidOrders, &order)
     bb.OrdersMap[orderId] = &order
 }
 
 func (bb *BidBook) Pop() *Order {
     order := heap.Pop(&bb.BidOrders).(*Order)
-    delete(bb.OrdersMap, order.orderId)
+    delete(bb.OrdersMap, order.OrderId)
     return order
 }
 
@@ -83,7 +83,7 @@ func (bb *BidBook) remove(orderId string) {
 func (bb *BidBook) volume() float64 {
     var total float64 = 0
     for _, order := range bb.BidOrders.BaseHeap {
-        total += order.quantity
+        total += order.Quantity
     }
     return total
 }
@@ -95,14 +95,14 @@ type AskBook struct {
 
 func (ab *AskBook) Push(orderId string, price float64, amount float64) {
     ab.remove(orderId) // ensure orderId does not already exist
-    order := Order{price: price, quantity: amount, orderId: orderId}
+    order := Order{Price: price, Quantity: amount, OrderId: orderId}
     heap.Push(&ab.AskOrders, &order)
     ab.OrdersMap[orderId] = &order
 }
 
 func (ab *AskBook) Pop() *Order {
     order := heap.Pop(&ab.AskOrders).(*Order)
-    delete(ab.OrdersMap, order.orderId)
+    delete(ab.OrdersMap, order.OrderId)
     return order
 }
 
@@ -116,7 +116,7 @@ func (ab *AskBook) remove(orderId string) {
 func (ab *AskBook) volume() float64 {
     var total float64 = 0
     for _, order := range ab.AskOrders.BaseHeap {
-        total += order.quantity
+        total += order.Quantity
     }
     return total
 }
@@ -143,16 +143,16 @@ func (ob OrderBook) Midpoint() float64 {
     if !ob.HasBoth() {
         return 0
     }
-    return (float64(ob.AskOrders.BaseHeap[0].price) +
-            float64(ob.BidOrders.BaseHeap[0].price)) / 2
+    return (float64(ob.AskOrders.BaseHeap[0].Price) +
+            float64(ob.BidOrders.BaseHeap[0].Price)) / 2
 }
 
 func (ob OrderBook) Spread() float64 {
     if !ob.HasBoth() {
         return 0
     }
-    return (float64(ob.AskOrders.BaseHeap[0].price) -
-            float64(ob.BidOrders.BaseHeap[0].price))
+    return (float64(ob.AskOrders.BaseHeap[0].Price) -
+            float64(ob.BidOrders.BaseHeap[0].Price))
 }
 
 func (ob OrderBook) HasBoth() bool {
