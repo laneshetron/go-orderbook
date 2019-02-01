@@ -60,8 +60,16 @@ type BidBook struct {
     OrdersMap
 }
 
+func (bb *BidBook) Peek() *Order {
+    if bb.Orders.Len() > 0 {
+        return bb.Orders.BaseHeap[0]
+    } else {
+        return nil
+    }
+}
+
 func (bb *BidBook) Push(orderId string, price float64, amount float64) {
-    bb.remove(orderId) // ensure orderId does not already exist
+    bb.Remove(orderId) // ensure orderId does not already exist
     order := Order{Price: price, Quantity: amount, OrderId: orderId}
     heap.Push(&bb.Orders, &order)
     bb.OrdersMap[orderId] = &order
@@ -73,7 +81,7 @@ func (bb *BidBook) Pop() *Order {
     return order
 }
 
-func (bb *BidBook) remove(orderId string) {
+func (bb *BidBook) Remove(orderId string) {
     if _, ok := bb.OrdersMap[orderId]; ok {
         heap.Remove(&bb.Orders, bb.OrdersMap[orderId].index)
         delete(bb.OrdersMap, orderId)
@@ -93,8 +101,16 @@ type AskBook struct {
     OrdersMap
 }
 
+func (ab *AskBook) Peek() *Order {
+    if ab.Orders.Len() > 0 {
+        return ab.Orders.BaseHeap[0]
+    } else {
+        return nil
+    }
+}
+
 func (ab *AskBook) Push(orderId string, price float64, amount float64) {
-    ab.remove(orderId) // ensure orderId does not already exist
+    ab.Remove(orderId) // ensure orderId does not already exist
     order := Order{Price: price, Quantity: amount, OrderId: orderId}
     heap.Push(&ab.Orders, &order)
     ab.OrdersMap[orderId] = &order
@@ -106,7 +122,7 @@ func (ab *AskBook) Pop() *Order {
     return order
 }
 
-func (ab *AskBook) remove(orderId string) {
+func (ab *AskBook) Remove(orderId string) {
     if _, ok := ab.OrdersMap[orderId]; ok {
         heap.Remove(&ab.Orders, ab.OrdersMap[orderId].index)
         delete(ab.OrdersMap, orderId)
@@ -143,16 +159,16 @@ func (ob OrderBook) Midpoint() float64 {
     if !ob.HasBoth() {
         return 0
     }
-    return (float64(ob.AskBook.Orders.BaseHeap[0].Price) +
-            float64(ob.BidBook.Orders.BaseHeap[0].Price)) / 2
+    return (float64(ob.AskBook.Peek().Price) +
+            float64(ob.BidBook.Peek().Price)) / 2
 }
 
 func (ob OrderBook) Spread() float64 {
     if !ob.HasBoth() {
         return 0
     }
-    return (float64(ob.AskBook.Orders.BaseHeap[0].Price) -
-            float64(ob.BidBook.Orders.BaseHeap[0].Price))
+    return (float64(ob.AskBook.Peek().Price) -
+            float64(ob.BidBook.Peek().Price))
 }
 
 func (ob OrderBook) HasBoth() bool {
