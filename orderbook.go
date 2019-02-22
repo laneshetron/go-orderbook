@@ -3,15 +3,15 @@ package orderbook
 import "container/heap"
 
 type Order struct {
-	Price    float64
-	Quantity float64
-	OrderId  string
+	Price    float64 `json:"price"`
+	Quantity float64 `json:"quantity"`
+	OrderId  string  `json:"orderId"`
 	index    int
 }
 
 type Quote struct {
-	Ask *Order
-	Bid *Order
+	Ask *Order `json:"ask,omitempty"`
+	Bid *Order `json:"bid,omitempty"`
 }
 
 type TradeEvent struct {
