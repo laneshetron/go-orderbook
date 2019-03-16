@@ -32,6 +32,14 @@ func (o *Order) Peek() *Order {
 	return o
 }
 
+func NewOrder(price float64, quantity float64, orderId string) Order {
+	return Order{
+		Price:    price,
+		Quantity: quantity,
+		OrderId:  orderId,
+	}
+}
+
 type Quote struct {
 	Ask *Order `json:"ask,omitempty"`
 	Bid *Order `json:"bid,omitempty"`
@@ -52,11 +60,13 @@ type BidOrders struct {
 type OrdersMap map[string]*Node
 
 func (ob AskOrders) Less(i, j int) bool {
-	return ob.BaseHeap[i].Peek().Price < ob.BaseHeap[j].Peek().Price
+	return ob.BaseHeap[i].Peek().Price*ob.BaseHeap[i].weight <
+		ob.BaseHeap[j].Peek().Price*ob.BaseHeap[j].weight
 }
 
 func (ob BidOrders) Less(i, j int) bool {
-	return ob.BaseHeap[i].Peek().Price > ob.BaseHeap[j].Peek().Price
+	return ob.BaseHeap[i].Peek().Price*ob.BaseHeap[i].weight >
+		ob.BaseHeap[j].Peek().Price*ob.BaseHeap[j].weight
 }
 
 func (h BaseHeap) Len() int { return len(h) }
@@ -84,11 +94,15 @@ type BidBook struct {
 }
 
 func (bb *BidBook) Peek() *Order {
-	if bb.Orders.Len() > 0 {
+	if bb.Len() > 0 {
 		return bb.Orders.BaseHeap[0].Peek()
 	} else {
 		return nil
 	}
+}
+
+func (bb *BidBook) Len() int {
+	return bb.Orders.Len()
 }
 
 func (bb *BidBook) Push(n *Node) {
@@ -110,6 +124,12 @@ func (bb *BidBook) Remove(key string) {
 	}
 }
 
+func (bb *BidBook) Fix(key string) {
+	if _, ok := bb.OrdersMap[key]; ok {
+		heap.Fix(&bb.Orders, bb.OrdersMap[key].index)
+	}
+}
+
 func (bb *BidBook) volume() float64 {
 	var total float64 = 0
 	for _, node := range bb.Orders.BaseHeap {
@@ -124,11 +144,15 @@ type AskBook struct {
 }
 
 func (ab *AskBook) Peek() *Order {
-	if ab.Orders.Len() > 0 {
+	if ab.Len() > 0 {
 		return ab.Orders.BaseHeap[0].Peek()
 	} else {
 		return nil
 	}
+}
+
+func (ab *AskBook) Len() int {
+	return ab.Orders.Len()
 }
 
 func (ab *AskBook) Push(n *Node) {
@@ -147,6 +171,12 @@ func (ab *AskBook) Remove(key string) {
 	if _, ok := ab.OrdersMap[key]; ok {
 		heap.Remove(&ab.Orders, ab.OrdersMap[key].index)
 		delete(ab.OrdersMap, key)
+	}
+}
+
+func (ab *AskBook) Fix(key string) {
+	if _, ok := ab.OrdersMap[key]; ok {
+		heap.Fix(&ab.Orders, ab.OrdersMap[key].index)
 	}
 }
 
@@ -191,7 +221,7 @@ func (ob OrderBook) Spread() float64 {
 }
 
 func (ob OrderBook) HasBoth() bool {
-	return ob.AskBook.Orders.Len() > 0 && ob.BidBook.Orders.Len() > 0
+	return ob.AskBook.Len() > 0 && ob.BidBook.Len() > 0
 }
 
 func (ob OrderBook) Volume() float64 {
