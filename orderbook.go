@@ -9,7 +9,7 @@ type Item interface {
 type Node struct {
 	Item
 	Key    string
-	weight float64
+	Weight float64
 	index  int
 }
 
@@ -17,7 +17,7 @@ func NewNode(key string, i Item, weight float64) Node {
 	return Node{
 		Item:   i,
 		Key:    key,
-		weight: weight,
+		Weight: weight,
 	}
 }
 
@@ -60,13 +60,13 @@ type BidOrders struct {
 type OrdersMap map[string]*Node
 
 func (ob AskOrders) Less(i, j int) bool {
-	return ob.BaseHeap[i].Peek().Price*ob.BaseHeap[i].weight <
-		ob.BaseHeap[j].Peek().Price*ob.BaseHeap[j].weight
+	return ob.BaseHeap[i].Peek().Price*ob.BaseHeap[i].Weight <
+		ob.BaseHeap[j].Peek().Price*ob.BaseHeap[j].Weight
 }
 
 func (ob BidOrders) Less(i, j int) bool {
-	return ob.BaseHeap[i].Peek().Price*ob.BaseHeap[i].weight >
-		ob.BaseHeap[j].Peek().Price*ob.BaseHeap[j].weight
+	return ob.BaseHeap[i].Peek().Price*ob.BaseHeap[i].Weight >
+		ob.BaseHeap[j].Peek().Price*ob.BaseHeap[j].Weight
 }
 
 func (h BaseHeap) Len() int { return len(h) }
