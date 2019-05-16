@@ -1,6 +1,9 @@
 package orderbook
 
-import "container/heap"
+import (
+	"container/heap"
+	"sync"
+)
 
 type Item interface {
 	Peek() *Order
@@ -91,6 +94,7 @@ func (h *BaseHeap) Pop() interface{} {
 type BidBook struct {
 	Orders BidOrders
 	OrdersMap
+	lock sync.Mutex
 }
 
 func (bb *BidBook) Peek() *Order {
@@ -107,17 +111,26 @@ func (bb *BidBook) Len() int {
 
 func (bb *BidBook) Push(n *Node) {
 	bb.Remove(n.Key) // ensure Key does not already exist
+	bb.lock.Lock()
+	defer bb.lock.Unlock()
+
 	heap.Push(&bb.Orders, n)
 	bb.OrdersMap[n.Key] = n
 }
 
 func (bb *BidBook) Pop() *Node {
+	bb.lock.Lock()
+	defer bb.lock.Unlock()
+
 	node := heap.Pop(&bb.Orders).(*Node)
 	delete(bb.OrdersMap, node.Key)
 	return node
 }
 
 func (bb *BidBook) Remove(key string) {
+	bb.lock.Lock()
+	defer bb.lock.Unlock()
+
 	if _, ok := bb.OrdersMap[key]; ok {
 		heap.Remove(&bb.Orders, bb.OrdersMap[key].index)
 		delete(bb.OrdersMap, key)
@@ -125,6 +138,9 @@ func (bb *BidBook) Remove(key string) {
 }
 
 func (bb *BidBook) Fix(key string) {
+	bb.lock.Lock()
+	defer bb.lock.Unlock()
+
 	if _, ok := bb.OrdersMap[key]; ok {
 		heap.Fix(&bb.Orders, bb.OrdersMap[key].index)
 	}
@@ -141,6 +157,7 @@ func (bb *BidBook) volume() float64 {
 type AskBook struct {
 	Orders AskOrders
 	OrdersMap
+	lock sync.Mutex
 }
 
 func (ab *AskBook) Peek() *Order {
@@ -157,17 +174,26 @@ func (ab *AskBook) Len() int {
 
 func (ab *AskBook) Push(n *Node) {
 	ab.Remove(n.Key) // ensure Key does not already exist
+	ab.lock.Lock()
+	defer ab.lock.Unlock()
+
 	heap.Push(&ab.Orders, n)
 	ab.OrdersMap[n.Key] = n
 }
 
 func (ab *AskBook) Pop() *Node {
+	ab.lock.Lock()
+	defer ab.lock.Unlock()
+
 	node := heap.Pop(&ab.Orders).(*Node)
 	delete(ab.OrdersMap, node.Key)
 	return node
 }
 
 func (ab *AskBook) Remove(key string) {
+	ab.lock.Lock()
+	defer ab.lock.Unlock()
+
 	if _, ok := ab.OrdersMap[key]; ok {
 		heap.Remove(&ab.Orders, ab.OrdersMap[key].index)
 		delete(ab.OrdersMap, key)
@@ -175,6 +201,9 @@ func (ab *AskBook) Remove(key string) {
 }
 
 func (ab *AskBook) Fix(key string) {
+	ab.lock.Lock()
+	defer ab.lock.Unlock()
+
 	if _, ok := ab.OrdersMap[key]; ok {
 		heap.Fix(&ab.Orders, ab.OrdersMap[key].index)
 	}
