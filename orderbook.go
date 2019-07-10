@@ -9,6 +9,15 @@ type Item interface {
 	Peek() *Order
 }
 
+type Book interface {
+	Item
+	Push(*Node)
+	Pop() *Node
+	Remove(string)
+	Fix(string)
+	Len() int
+}
+
 type Node struct {
 	Item
 	Key    string
