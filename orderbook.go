@@ -13,6 +13,7 @@ type Book interface {
 	Item
 	Push(*Node)
 	Pop() *Node
+	Get(string) (*Node, bool)
 	Remove(string)
 	Fix(string)
 	Len() int
@@ -136,12 +137,17 @@ func (bb *BidBook) Pop() *Node {
 	return node
 }
 
+func (bb *BidBook) Get(key string) (*Node, bool) {
+	n, ok := bb.OrdersMap[key]
+	return n, ok
+}
+
 func (bb *BidBook) Remove(key string) {
 	bb.lock.Lock()
 	defer bb.lock.Unlock()
 
-	if _, ok := bb.OrdersMap[key]; ok {
-		heap.Remove(&bb.Orders, bb.OrdersMap[key].index)
+	if n, ok := bb.Get(key); ok {
+		heap.Remove(&bb.Orders, n.index)
 		delete(bb.OrdersMap, key)
 	}
 }
@@ -150,8 +156,8 @@ func (bb *BidBook) Fix(key string) {
 	bb.lock.Lock()
 	defer bb.lock.Unlock()
 
-	if _, ok := bb.OrdersMap[key]; ok {
-		heap.Fix(&bb.Orders, bb.OrdersMap[key].index)
+	if n, ok := bb.Get(key); ok {
+		heap.Fix(&bb.Orders, n.index)
 	}
 }
 
@@ -199,12 +205,17 @@ func (ab *AskBook) Pop() *Node {
 	return node
 }
 
+func (ab *AskBook) Get(key string) (*Node, bool) {
+	n, ok := ab.OrdersMap[key]
+	return n, ok
+}
+
 func (ab *AskBook) Remove(key string) {
 	ab.lock.Lock()
 	defer ab.lock.Unlock()
 
-	if _, ok := ab.OrdersMap[key]; ok {
-		heap.Remove(&ab.Orders, ab.OrdersMap[key].index)
+	if n, ok := ab.Get(key); ok {
+		heap.Remove(&ab.Orders, n.index)
 		delete(ab.OrdersMap, key)
 	}
 }
@@ -213,8 +224,8 @@ func (ab *AskBook) Fix(key string) {
 	ab.lock.Lock()
 	defer ab.lock.Unlock()
 
-	if _, ok := ab.OrdersMap[key]; ok {
-		heap.Fix(&ab.Orders, ab.OrdersMap[key].index)
+	if n, ok := ab.Get(key); ok {
+		heap.Fix(&ab.Orders, n.index)
 	}
 }
 
