@@ -82,7 +82,7 @@ func (ob AskOrders) Less(i, j int) bool {
 	} else if left == nil && right != nil {
 		return false
 	}
-	return left.Price*left.Weight < right.Price*right.Weight
+	return left.Price*ob.BaseHeap[i].Weight < right.Price*ob.BaseHeap[j].Weight
 }
 
 func (ob BidOrders) Less(i, j int) bool {
@@ -95,7 +95,7 @@ func (ob BidOrders) Less(i, j int) bool {
 	} else if left == nil && right != nil {
 		return false
 	}
-	return left.Price*left.Weight > right.Price*right.Weight
+	return left.Price*ob.BaseHeap[i].Weight > right.Price*ob.BaseHeap[j].Weight
 }
 
 func (h BaseHeap) Len() int { return len(h) }
