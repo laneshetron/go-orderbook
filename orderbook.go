@@ -73,13 +73,29 @@ type BidOrders struct {
 type OrdersMap map[string]*Node
 
 func (ob AskOrders) Less(i, j int) bool {
-	return ob.BaseHeap[i].Peek().Price*ob.BaseHeap[i].Weight <
-		ob.BaseHeap[j].Peek().Price*ob.BaseHeap[j].Weight
+	left := ob.BaseHeap[i].Peek()
+	right := ob.BaseHeap[j].Peek()
+	if left == nil && right == nil {
+		return false
+	} else if left != nil && right == nil {
+		return true
+	} else if left == nil && right != nil {
+		return false
+	}
+	return left.Price*left.Weight < right.Price*right.Weight
 }
 
 func (ob BidOrders) Less(i, j int) bool {
-	return ob.BaseHeap[i].Peek().Price*ob.BaseHeap[i].Weight >
-		ob.BaseHeap[j].Peek().Price*ob.BaseHeap[j].Weight
+	left := ob.BaseHeap[i].Peek()
+	right := ob.BaseHeap[j].Peek()
+	if left == nil && right == nil {
+		return false
+	} else if left != nil && right == nil {
+		return true
+	} else if left == nil && right != nil {
+		return false
+	}
+	return left.Price*left.Weight > right.Price*right.Weight
 }
 
 func (h BaseHeap) Len() int { return len(h) }
