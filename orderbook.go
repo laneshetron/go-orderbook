@@ -284,6 +284,12 @@ func (ob *OrderBook) Init() {
 	ob.sellEvents = make(chan *TradeEvent)
 }
 
+func NewOrderBook() *OrderBook {
+	ob := OrderBook{}
+	ob.Init()
+	return &ob
+}
+
 func (ob OrderBook) Midpoint() float64 {
 	if !ob.HasBoth() {
 		return 0
