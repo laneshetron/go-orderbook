@@ -284,6 +284,21 @@ func (ob *OrderBook) Init() {
 	ob.sellEvents = make(chan *TradeEvent)
 }
 
+func Copy(src, dst *OrderBook) {
+	for _, n := range src.AskBook.OrdersMap {
+		n := *n
+		o := *n.Peek()
+		n.Item = &o
+		dst.AskBook.Push(&n)
+	}
+	for _, n := range src.BidBook.OrdersMap {
+		n := *n
+		o := *n.Peek()
+		n.Item = &o
+		dst.BidBook.Push(&n)
+	}
+}
+
 func NewOrderBook() *OrderBook {
 	ob := OrderBook{}
 	ob.Init()

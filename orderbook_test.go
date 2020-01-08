@@ -91,3 +91,35 @@ func TestBidBook(t *testing.T) {
 		})
 	}
 }
+
+func TestCopy(t *testing.T) {
+	src := NewOrderBook()
+	dst := NewOrderBook()
+
+	ask := NewOrder(1234.0, 100, "a")
+	bid := NewOrder(1232.0, 100, "b")
+	node1 := NewNode("a", &ask, 1)
+	node2 := NewNode("b", &bid, 1)
+	src.AskBook.Push(&node1)
+	src.BidBook.Push(&node2)
+
+	Copy(src, dst)
+	if dst.AskBook.Peek() == nil || dst.BidBook.Peek() == nil {
+		t.Fatal("Expected src entries to be copied to dst OrderBook.")
+	}
+	dst.AskBook.Peek().Quantity -= 10
+	dst.BidBook.Peek().Price -= 2
+	if src.AskBook.Peek().Quantity == dst.AskBook.Peek().Quantity {
+		t.Errorf("Expected source order to be unaltered. Expected %f, got %f", 100.0, src.AskBook.Peek().Quantity)
+	}
+	if src.BidBook.Peek().Price == dst.BidBook.Peek().Price {
+		t.Errorf("Expected source order to be unaltered. Expected %f, got %f", 1232.0, src.BidBook.Peek().Price)
+	}
+
+	srcNode := src.AskBook.Pop()
+	dstNode := dst.AskBook.Pop()
+	dstNode.Weight = 2
+	if srcNode.Weight == dstNode.Weight {
+		t.Errorf("Expected source node weight to be unaltered. Expected %f, got %f", 1.0, srcNode.Weight)
+	}
+}
